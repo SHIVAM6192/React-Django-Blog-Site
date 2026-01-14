@@ -1,59 +1,85 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 
-const Login = () => {
+// 1. We MUST destructure 'onLoginSuccess' from props here
+const Login = ({ onLoginSuccess }) => {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e) => {
-        e.preventDefault(); // Prevent page reload
+        e.preventDefault();
+        setError('');
+        setIsLoading(true);
         
         try {
-            // 1. Send credentials to Django
             const response = await axios.post('http://127.0.0.1:8000/api/token/', {
                 username: username,
                 password: password
             });
 
-            // 2. If successful, print data and save tokens
-            console.log("Success! Tokens received:", response.data);
-            
+            // 2. Save tokens to storage
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
             
-            alert("Login Successful!");
+            // 3. CRITICAL: Tell App.js we succeeded!
+            if (onLoginSuccess) {
+                onLoginSuccess(response.data.access);
+            }
 
         } catch (err) {
             console.error(err);
             setError('Invalid credentials. Please try again.');
+        } finally {
+            setIsLoading(false);
         }
     };
 
     return (
-        <div style={{ maxWidth: '300px', margin: '50px auto' }}>
-            <h2>Login</h2>
-            {error && <p style={{ color: 'red' }}>{error}</p>}
-            <form onSubmit={handleSubmit}>
-                <div style={{ marginBottom: '10px' }}>
-                    <label>Username:</label><br/>
-                    <input 
-                        type="text" 
-                        value={username} 
-                        onChange={(e) => setUsername(e.target.value)} 
-                    />
+        <form onSubmit={handleSubmit} className="space-y-6">
+            {error && (
+                <div className="bg-red-50 text-red-500 p-3 rounded text-sm text-center">
+                    {error}
                 </div>
-                <div style={{ marginBottom: '10px' }}>
-                    <label>Password:</label><br/>
-                    <input 
-                        type="password" 
-                        value={password} 
-                        onChange={(e) => setPassword(e.target.value)} 
-                    />
-                </div>
-                <button type="submit">Login</button>
-            </form>
-        </div>
+            )}
+            
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Username</label>
+                <input 
+                    type="text" 
+                    value={username} 
+                    onChange={(e) => setUsername(e.target.value)} 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    placeholder="Enter your username"
+                    required
+                />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
+                <input 
+                    type="password" 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    placeholder="••••••••"
+                    required
+                />
+            </div>
+
+            <button 
+                type="submit" 
+                disabled={isLoading}
+                className={`w-full py-3 rounded-lg text-white font-bold transition duration-300 ${
+                    isLoading 
+                    ? 'bg-blue-400 cursor-not-allowed' 
+                    : 'bg-blue-600 hover:bg-blue-700 shadow-lg hover:shadow-xl'
+                }`}
+            >
+                {isLoading ? 'Signing in...' : 'Login'}
+            </button>
+        </form>
     );
 };
 
