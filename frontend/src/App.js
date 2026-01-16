@@ -5,12 +5,15 @@ import LandingPage from './components/LandingPage';
 import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Register from './components/Register'; 
+import MyPosts from './components/MyPosts';
 
 function App() {
+  const [view, setView] = useState('dashboard');
   const [token, setToken] = useState(localStorage.getItem('access_token'));
   const [username, setUsername] = useState('');
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [authMode, setAuthMode] = useState('login'); // 'login' or 'register'
+  const [authMode, setAuthMode] = useState('login');
+  const [dashboardKey, setDashboardKey] = useState(0);
 
   // 1. Fetch User Profile
   useEffect(() => {
@@ -33,6 +36,7 @@ function App() {
 
   const handleLoginSuccess = (newToken) => {
     setToken(newToken);
+    setView('dashboard'); // Reset view to dashboard on login
     setShowLoginModal(false);
   };
 
@@ -52,11 +56,18 @@ function App() {
       localStorage.removeItem('refresh_token');
       setToken(null);
       setUsername('');
+      setView('dashboard');
     }
   };
 
   const handleRegisterSuccess = () => {
      setAuthMode('login');
+  };
+
+  const handleLogoClick = () => {
+    setView('dashboard');
+    // Incrementing key forces React to unmount and remount Dashboard
+    setDashboardKey(prev => prev + 1); 
   };
 
   return (
@@ -73,17 +84,28 @@ function App() {
             setAuthMode('register');
             setShowLoginModal(true);
         }}
+        // When clicking "My Posts" in Navbar, switch view
+        onMyPostsClick={() => setView('myposts')} 
+        onLogoClick={handleLogoClick}
       />
 
+      {/* MAIN CONTENT SWITCHER */}
       {token ? (
-        <Dashboard />
+        // If logged in, check which view to show
+        view === 'myposts' ? (
+          <MyPosts />
+        ) : (
+          <Dashboard />
+        )
       ) : (
+        // If not logged in, show Landing Page
         <LandingPage onLoginClick={() => {
             setAuthMode('login');
             setShowLoginModal(true);
         }} />
       )}
 
+      {/* LOGIN/REGISTER MODAL */}
       {showLoginModal && !token && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-hidden">
@@ -120,7 +142,6 @@ function App() {
                         onRegisterSuccess={handleRegisterSuccess} 
                         switchToLogin={() => setAuthMode('login')} 
                     />
-                     
                 </>
               )}
             </div>
