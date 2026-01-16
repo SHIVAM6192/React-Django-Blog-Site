@@ -15,9 +15,34 @@ from .serializers import PostSerializer, RegisterSerializer
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_posts(request):
-    posts = Post.objects.all()
+    posts = Post.objects.filter(is_active=True, is_show=True).order_by('-created_at')
     serializer = PostSerializer(posts, many=True)
     return Response(serializer.data)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_my_posts(request):
+    posts = Post.objects.filter(author=request.user).order_by('-created_at')
+    serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_post(request, pk):
+    try:
+        post = Post.objects.get(pk=pk)
+    except Post.DoesNotExist:
+        return Response(status=status.HTTP_404_NOT_FOUND)
+
+    # Security Check: Ensure the user owns this post
+    if post.author != request.user:
+        return Response({"error": "You cannot edit someone else's post"}, status=status.HTTP_403_FORBIDDEN)
+
+    serializer = PostSerializer(post, data=request.data, partial=True) # partial=True allows updating just 1 field
+    if serializer.is_valid():
+        serializer.save()
+        return Response(serializer.data)
+    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 @api_view(['POST'])
