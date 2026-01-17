@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 // Accept onPostClick prop
 const PostList = ({ refreshTrigger, onPostClick }) => {
@@ -11,7 +12,7 @@ const PostList = ({ refreshTrigger, onPostClick }) => {
                 const token = localStorage.getItem('access_token');
                 if (!token) return;
 
-                const response = await axios.get('http://127.0.0.1:8000/api/posts/', {
+                const response = await axios.get(`${API_BASE_URL}/api/posts/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 setPosts(response.data);
@@ -57,7 +58,7 @@ const PostList = ({ refreshTrigger, onPostClick }) => {
                         </p>
                         <div className="flex items-center text-xs text-blue-600 font-semibold mt-auto pt-4 border-t border-gray-100">
                             READ MORE →
-                            <span className="ml-auto text-gray-400 font-normal">By @{post.author}</span>
+                            <span className="ml-auto text-gray-400 font-normal">By @{post.author_first_name}</span>
                         </div>
                     </div>
                 </div>

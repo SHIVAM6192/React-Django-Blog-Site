@@ -1,4 +1,5 @@
 import React from 'react';
+import { API_BASE_URL } from '../config';
 
 const BlogDetail = ({ post, onBack }) => {
   return (
@@ -31,7 +32,7 @@ const BlogDetail = ({ post, onBack }) => {
           {/* Header Info */}
           <div className="flex items-center space-x-2 text-sm text-gray-500 mb-4">
              <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded font-semibold">
-                @{post.author || 'User'}
+                @{post.author_username || 'User'}
              </span>
              <span>•</span>
              <span>{new Date(post.created_at).toLocaleDateString()}</span>

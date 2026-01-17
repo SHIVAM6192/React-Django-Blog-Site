@@ -79,11 +79,13 @@ def get_user_profile(request):
     profile_data = {
         'username': user.username,
         'email': user.email,
+        'first_name': user.first_name,
+        'last_name': user.last_name,
     }
     return Response(profile_data)
 
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
-    permission_classes = (AllowAny,) # Allow unauthenticated users to register
+    permission_classes = (AllowAny,)
     serializer_class = RegisterSerializer

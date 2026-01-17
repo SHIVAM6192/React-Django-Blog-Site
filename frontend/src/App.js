@@ -6,16 +6,21 @@ import Dashboard from './components/Dashboard';
 import Login from './components/Login';
 import Register from './components/Register'; 
 import MyPosts from './components/MyPosts';
+import ProfileModal from './components/ProfileModal';
+import { API_BASE_URL } from './config';
 
 function App() {
   const [view, setView] = useState('dashboard');
   const [token, setToken] = useState(localStorage.getItem('access_token'));
-  const [username, setUsername] = useState('');
+  
+  // Changed: Store full user object, not just username
+  const [user, setUser] = useState(null); 
+  
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showProfileModal, setShowProfileModal] = useState(false); // New State
   const [authMode, setAuthMode] = useState('login');
   const [dashboardKey, setDashboardKey] = useState(0);
 
-  // 1. Fetch User Profile
   useEffect(() => {
     if (token) {
       fetchUserProfile(token);
@@ -24,10 +29,10 @@ function App() {
 
   const fetchUserProfile = async (currentToken) => {
     try {
-      const response = await axios.get('http://127.0.0.1:8000/api/profile/', {
+      const response = await axios.get(`${API_BASE_URL}/api/profile/`, {
         headers: { 'Authorization': `Bearer ${currentToken}` }
       });
-      setUsername(response.data.username);
+      setUser(response.data);
     } catch (error) {
       console.error("Failed to fetch user:", error);
       handleLogout(); 
@@ -36,7 +41,7 @@ function App() {
 
   const handleLoginSuccess = (newToken) => {
     setToken(newToken);
-    setView('dashboard'); // Reset view to dashboard on login
+    setView('dashboard');
     setShowLoginModal(false);
   };
 
@@ -44,7 +49,7 @@ function App() {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
       if (token && refreshToken) {
-        await axios.post('http://127.0.0.1:8000/api/logout/', 
+        await axios.post(`${API_BASE_URL}/api/logout/`, 
           { "refresh_token": refreshToken }, 
           { headers: { 'Authorization': `Bearer ${token}` } }
         );
@@ -55,18 +60,13 @@ function App() {
       localStorage.removeItem('access_token');
       localStorage.removeItem('refresh_token');
       setToken(null);
-      setUsername('');
+      setUser(null);
       setView('dashboard');
     }
   };
 
-  const handleRegisterSuccess = () => {
-     setAuthMode('login');
-  };
-
   const handleLogoClick = () => {
     setView('dashboard');
-    // Incrementing key forces React to unmount and remount Dashboard
     setDashboardKey(prev => prev + 1); 
   };
 
@@ -74,7 +74,7 @@ function App() {
     <div className="min-h-screen bg-gray-50 font-sans">
       <Navbar 
         isLoggedIn={!!token} 
-        username={username} 
+        user={user}
         onLogout={handleLogout} 
         onLoginClick={() => {
             setAuthMode('login');
@@ -84,28 +84,34 @@ function App() {
             setAuthMode('register');
             setShowLoginModal(true);
         }}
-        // When clicking "My Posts" in Navbar, switch view
         onMyPostsClick={() => setView('myposts')} 
         onLogoClick={handleLogoClick}
+        onProfileClick={() => setShowProfileModal(true)}
       />
 
-      {/* MAIN CONTENT SWITCHER */}
+      {/* CONTENT SWITCHER */}
       {token ? (
-        // If logged in, check which view to show
         view === 'myposts' ? (
           <MyPosts />
         ) : (
-          <Dashboard />
+          <Dashboard key={dashboardKey} />
         )
       ) : (
-        // If not logged in, show Landing Page
         <LandingPage onLoginClick={() => {
             setAuthMode('login');
             setShowLoginModal(true);
         }} />
       )}
 
-      {/* LOGIN/REGISTER MODAL */}
+      {/* PROFILE MODAL */}
+      {showProfileModal && user && (
+        <ProfileModal 
+            user={user} 
+            onClose={() => setShowProfileModal(false)} 
+        />
+      )}
+
+      {/* AUTH MODAL */}
       {showLoginModal && !token && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-hidden">
@@ -139,7 +145,7 @@ function App() {
               ) : (
                 <>
                     <Register 
-                        onRegisterSuccess={handleRegisterSuccess} 
+                        onRegisterSuccess={() => setAuthMode('login')} 
                         switchToLogin={() => setAuthMode('login')} 
                     />
                 </>

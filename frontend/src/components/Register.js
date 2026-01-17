@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const Register = ({ onRegisterSuccess, switchToLogin }) => {
     const [formData, setFormData] = useState({
@@ -25,7 +26,7 @@ const Register = ({ onRegisterSuccess, switchToLogin }) => {
         setIsLoading(true);
 
         try {
-            await axios.post('http://127.0.0.1:8000/api/register/', formData);
+            await axios.post(`${API_BASE_URL}/api/register/`, formData);
             alert("Registration Successful! Please login.");
             if (onRegisterSuccess) onRegisterSuccess(); // Switch to login view
         } catch (err) {

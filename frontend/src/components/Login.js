@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 // 1. We MUST destructure 'onLoginSuccess' from props here
 const Login = ({ onLoginSuccess }) => {
@@ -14,7 +15,7 @@ const Login = ({ onLoginSuccess }) => {
         setIsLoading(true);
         
         try {
-            const response = await axios.post('http://127.0.0.1:8000/api/token/', {
+            const response = await axios.post(`${API_BASE_URL}/api/token/`, {
                 username: username,
                 password: password
             });

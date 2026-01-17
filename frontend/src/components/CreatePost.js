@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { API_BASE_URL } from '../config';
 
 const CreatePost = ({ onPostCreated }) => {
     const [title, setTitle] = useState('');
@@ -23,7 +24,7 @@ const CreatePost = ({ onPostCreated }) => {
         e.preventDefault();
         const token = localStorage.getItem('access_token');
         try {
-            await axios.post('http://127.0.0.1:8000/api/posts/create/', 
+            await axios.post(`${API_BASE_URL}/api/posts/create/`, 
                 { title, content, image, is_show: isShow },
                 { headers: { 'Authorization': `Bearer ${token}` } }
             );

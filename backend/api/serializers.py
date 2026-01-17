@@ -4,13 +4,15 @@ from .models import Post
 from django.contrib.auth.password_validation import validate_password
 
 class PostSerializer(serializers.ModelSerializer):
-    author = serializers.ReadOnlyField(source='author.username')
+    author_username = serializers.ReadOnlyField(source='author.username')
+    author_first_name = serializers.ReadOnlyField(source='author.first_name')
+    author_last_name = serializers.ReadOnlyField(source='author.last_name')
 
     class Meta:
         model = Post
         # Add new fields to the list
-        fields = ['id', 'title', 'content', 'author', 'created_at', 'is_show', 'is_active', 'image']
-        read_only_fields = ['author', 'created_at', 'is_active']
+        fields = ['id', 'title', 'content', 'author_username', 'author_first_name', 'author_last_name', 'created_at', 'is_show', 'is_active', 'image']
+        read_only_fields = ['author_username', 'created_at', 'is_active']
         
         
 class RegisterSerializer(serializers.ModelSerializer):
