@@ -3,7 +3,7 @@ import CreatePost from './CreatePost';
 import PostList from './PostList';
 import BlogDetail from './BlogDetail';
 
-const Dashboard = () => {
+const Dashboard = ({ onAuthorClick }) => { // 1. Accept the prop
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedPost, setSelectedPost] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
@@ -14,6 +14,7 @@ const Dashboard = () => {
       <BlogDetail 
         post={selectedPost} 
         onBack={() => setSelectedPost(null)} 
+        onAuthorClick={onAuthorClick} // 2. Pass it to Detail View
       />
     );
   }
@@ -86,6 +87,7 @@ const Dashboard = () => {
              <PostList 
                 refreshTrigger={refreshTrigger} 
                 onPostClick={(post) => setSelectedPost(post)} 
+                onAuthorClick={onAuthorClick} // 3. Pass it to Post List
              />
         </div>
 

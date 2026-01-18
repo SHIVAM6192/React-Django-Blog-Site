@@ -152,11 +152,32 @@ def get_profile(request, username):
 @api_view(['PUT'])
 @permission_classes([IsAuthenticated])
 def update_profile(request):
-    profile = request.user.profile
-    serializer = ProfileSerializer(profile, data=request.data, partial=True)
+    user = request.user
+    profile = user.profile
+    data = request.data
+
+    # 1. Manually Update User Model Fields (Name, Email)
+    user_changed = False
+    if 'first_name' in data:
+        user.first_name = data['first_name']
+        user_changed = True
+    if 'last_name' in data:
+        user.last_name = data['last_name']
+        user_changed = True
+    if 'email' in data:
+        user.email = data['email']
+        user_changed = True
+    
+    if user_changed:
+        user.save()
+
+    # 2. Update Profile Model Fields (Bio, Images) via Serializer
+    # We pass 'partial=True' so we don't need to send every field
+    serializer = ProfileSerializer(profile, data=data, partial=True, context={'request': request})
     if serializer.is_valid():
         serializer.save()
         return Response(serializer.data)
+    
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 @api_view(['POST'])

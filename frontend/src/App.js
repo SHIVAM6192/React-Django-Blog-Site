@@ -7,19 +7,22 @@ import Login from './components/Login';
 import Register from './components/Register'; 
 import MyPosts from './components/MyPosts';
 import ProfileModal from './components/ProfileModal';
+import ProfilePage from './components/ProfilePage';
+import BlogDetail from './components/BlogDetail'; // Imported BlogDetail
 import { API_BASE_URL } from './config';
 
 function App() {
   const [view, setView] = useState('dashboard');
   const [token, setToken] = useState(localStorage.getItem('access_token'));
-  
-  // Changed: Store full user object, not just username
   const [user, setUser] = useState(null); 
-  
   const [showLoginModal, setShowLoginModal] = useState(false);
-  const [showProfileModal, setShowProfileModal] = useState(false); // New State
+  const [showProfileModal, setShowProfileModal] = useState(false);
   const [authMode, setAuthMode] = useState('login');
   const [dashboardKey, setDashboardKey] = useState(0);
+  
+  // Navigation State
+  const [viewProfileUser, setViewProfileUser] = useState(null);
+  const [selectedPost, setSelectedPost] = useState(null); // Tracks the clicked post
 
   useEffect(() => {
     if (token) {
@@ -70,20 +73,37 @@ function App() {
     setDashboardKey(prev => prev + 1); 
   };
 
+  // Handler to open any public profile
+  const handleOpenProfile = (username) => {
+      setViewProfileUser(username);
+      setView('profile');
+  };
+
+  // Handler to open a post (Used by ProfilePage)
+  const handlePostClick = (post) => {
+      setSelectedPost(post);
+      setView('post_detail');
+  };
+
+  // Handler to go back from Post Detail
+  const handleBackFromPost = () => {
+      setSelectedPost(null);
+      // If we were viewing a profile, go back to it, otherwise dashboard
+      if (viewProfileUser && view === 'post_detail') {
+          setView('profile');
+      } else {
+          setView('dashboard');
+      }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 font-sans">
       <Navbar 
         isLoggedIn={!!token} 
         user={user}
         onLogout={handleLogout} 
-        onLoginClick={() => {
-            setAuthMode('login');
-            setShowLoginModal(true);
-        }}
-        onRegisterClick={() => {
-            setAuthMode('register');
-            setShowLoginModal(true);
-        }}
+        onLoginClick={() => { setAuthMode('login'); setShowLoginModal(true); }}
+        onRegisterClick={() => { setAuthMode('register'); setShowLoginModal(true); }}
         onMyPostsClick={() => setView('myposts')} 
         onLogoClick={handleLogoClick}
         onProfileClick={() => setShowProfileModal(true)}
@@ -93,21 +113,41 @@ function App() {
       {token ? (
         view === 'myposts' ? (
           <MyPosts />
+        ) : view === 'profile' ? (
+          // 1. Profile Page View
+          <ProfilePage 
+            username={viewProfileUser} 
+            currentUser={user?.username} 
+            onPostClick={handlePostClick} // Passes handler to open post
+          />
+        ) : view === 'post_detail' && selectedPost ? (
+          // 2. Post Detail View
+          <BlogDetail 
+            post={selectedPost} 
+            onBack={handleBackFromPost} 
+            onAuthorClick={handleOpenProfile} 
+          />
         ) : (
-          <Dashboard key={dashboardKey} />
+          // 3. Dashboard View
+          <Dashboard 
+            key={dashboardKey} 
+            onAuthorClick={handleOpenProfile} 
+          />
         )
       ) : (
-        <LandingPage onLoginClick={() => {
-            setAuthMode('login');
-            setShowLoginModal(true);
-        }} />
+        <LandingPage onLoginClick={() => { setAuthMode('login'); setShowLoginModal(true); }} />
       )}
 
-      {/* PROFILE MODAL */}
+      {/* PROFILE MODAL (Small Popup for self) */}
       {showProfileModal && user && (
         <ProfileModal 
             user={user} 
-            onClose={() => setShowProfileModal(false)} 
+            onClose={() => setShowProfileModal(false)}
+            onViewProfile={(username) => {
+                setViewProfileUser(username);
+                setView('profile');
+                setShowProfileModal(false);
+            }}
         />
       )}
 
@@ -121,34 +161,19 @@ function App() {
             >
               &times;
             </button>
-            
             <div className="p-8">
               <h2 className="text-2xl font-bold text-gray-800 mb-6 text-center">
                 {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
               </h2>
-              
               {authMode === 'login' ? (
                 <>
                   <Login onLoginSuccess={handleLoginSuccess} />
                   <div className="text-center mt-4">
-                    <p className="text-sm text-gray-600">
-                        Don't have an account?{' '}
-                        <button 
-                            onClick={() => setAuthMode('register')} 
-                            className="text-blue-600 font-semibold hover:underline"
-                        >
-                            Sign Up
-                        </button>
-                    </p>
+                    <p className="text-sm text-gray-600">Don't have an account? <button onClick={() => setAuthMode('register')} className="text-blue-600 font-semibold hover:underline">Sign Up</button></p>
                   </div>
                 </>
               ) : (
-                <>
-                    <Register 
-                        onRegisterSuccess={() => setAuthMode('login')} 
-                        switchToLogin={() => setAuthMode('login')} 
-                    />
-                </>
+                <Register onRegisterSuccess={() => setAuthMode('login')} switchToLogin={() => setAuthMode('login')} />
               )}
             </div>
           </div>
