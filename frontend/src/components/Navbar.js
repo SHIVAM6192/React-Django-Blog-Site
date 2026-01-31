@@ -11,7 +11,7 @@ const Navbar = ({ isLoggedIn, user, onLogout, onLoginClick, onRegisterClick, onM
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           
-          {/* LOGO */}
+          {/* LEFT SIDE: LOGO */}
           <div
             onClick={onLogoClick}
             className="flex-shrink-0 flex items-center cursor-pointer hover:opacity-80 transition"
@@ -21,8 +21,10 @@ const Navbar = ({ isLoggedIn, user, onLogout, onLoginClick, onRegisterClick, onM
             </h1>
           </div>
 
-          {/* DESKTOP MENU (Hidden on Mobile) */}
+          {/* RIGHT SIDE: DESKTOP MENU */}
           <div className="hidden md:flex items-center space-x-4">
+            
+            {/* Navigation Buttons */}
             {isLoggedIn ? (
               <>
                 <button
@@ -31,40 +33,51 @@ const Navbar = ({ isLoggedIn, user, onLogout, onLoginClick, onRegisterClick, onM
                 >
                   My Posts
                 </button>
-
-                {/* Profile Icon */}
-                <div 
-                    onClick={onProfileClick}
-                    className="flex items-center space-x-2 cursor-pointer hover:bg-slate-800 rounded-full pr-3 pl-1 py-1 transition"
-                >
-                  <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold shadow-sm">
-                    {getInitial()}
-                  </div>
-                  <span className="text-gray-300 font-medium text-sm">{user?.username}</span>
-                </div>
-
-                <button 
-                  onClick={onLogout}
-                  className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md text-sm font-medium transition shadow-md"
-                >
-                  Logout
-                </button>
+                {/* Logout Removed from here */}
               </>
             ) : (
-              <div className="flex space-x-3">
-                <button onClick={onLoginClick} className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium">Login</button>
-                <button onClick={onRegisterClick} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded-md text-sm font-medium shadow-md">Sign Up</button>
+              <>
+                <button
+                  onClick={onLoginClick}
+                  className="text-gray-300 hover:text-white px-3 py-2 rounded-md text-sm font-medium transition"
+                >
+                  Login
+                </button>
+                <button
+                  onClick={onRegisterClick}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium transition"
+                >
+                  Sign Up
+                </button>
+              </>
+            )}
+
+            {/* Profile Icon (Only shows if logged in) */}
+            {isLoggedIn && (
+              <div 
+                className="ml-2 w-9 h-9 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold cursor-pointer hover:opacity-80 transition overflow-hidden border-2 border-slate-700"
+                onClick={onProfileClick}
+                title="View Profile"
+              >
+                {user?.profile_image ? (
+                    <img 
+                        src={user.profile_image} 
+                        alt="Profile" 
+                        className="w-full h-full object-cover" 
+                    />
+                ) : (
+                    getInitial()
+                )}
               </div>
             )}
           </div>
 
-          {/* MOBILE HAMBURGER BUTTON */}
-          <div className="flex md:hidden">
+          {/* MOBILE MENU BUTTON */}
+          <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileOpen(!isMobileOpen)}
-              className="text-gray-300 hover:text-white focus:outline-none p-2"
+              className="text-gray-300 hover:text-white focus:outline-none"
             >
-              {/* Hamburger / Close Icon SVG Switch */}
               <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isMobileOpen ? (
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -77,25 +90,25 @@ const Navbar = ({ isLoggedIn, user, onLogout, onLoginClick, onRegisterClick, onM
         </div>
       </div>
 
-      {/* MOBILE DROPDOWN MENU */}
+      {/* MOBILE MENU (Dropdown) */}
       {isMobileOpen && (
-        <div className="md:hidden bg-slate-800 border-t border-slate-700 animate-fade-in-down">
-          <div className="px-2 pt-2 pb-3 space-y-1">
+        <div className="md:hidden bg-slate-800">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             {isLoggedIn ? (
               <>
-                {/* Mobile Profile Section */}
-                <button 
+                <div 
+                    className="flex items-center px-3 py-2 mb-2 border-b border-slate-700 cursor-pointer" 
                     onClick={() => { onProfileClick(); setIsMobileOpen(false); }}
-                    className="w-full text-left flex items-center px-3 py-3 rounded-md text-base font-medium text-white hover:bg-slate-700"
                 >
-                    <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-sm font-bold mr-3">
-                        {getInitial()}
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-sm font-bold mr-3 overflow-hidden">
+                        {user?.profile_image ? (
+                            <img src={user.profile_image} alt="Profile" className="w-full h-full object-cover" />
+                        ) : (
+                            getInitial()
+                        )}
                     </div>
-                    <div>
-                        <div className="text-sm font-bold">{user?.username}</div>
-                        <div className="text-xs text-gray-400">View Profile</div>
-                    </div>
-                </button>
+                    <span className="font-medium text-white">{user?.username}</span>
+                </div>
 
                 <button
                   onClick={() => { onMyPostsClick(); setIsMobileOpen(false); }}
@@ -103,7 +116,7 @@ const Navbar = ({ isLoggedIn, user, onLogout, onLoginClick, onRegisterClick, onM
                 >
                   My Posts
                 </button>
-
+                {/* Keep Logout in Mobile Menu for accessibility */}
                 <button
                   onClick={() => { onLogout(); setIsMobileOpen(false); }}
                   className="block w-full text-left px-3 py-2 rounded-md text-base font-medium text-red-400 hover:text-red-300 hover:bg-slate-700"

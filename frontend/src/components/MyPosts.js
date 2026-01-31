@@ -4,10 +4,16 @@ import { API_BASE_URL } from '../config';
 
 const MyPosts = () => {
     const [posts, setPosts] = useState([]);
+    const [categories, setCategories] = useState([]); // Store categories
     const [currentPost, setCurrentPost] = useState(null); // For Edit/Create Modal
     const [postToDelete, setPostToDelete] = useState(null); // For Delete Confirmation Modal
 
-    // Fetch My Posts
+    // Initial Fetch (Posts & Categories)
+    useEffect(() => {
+        fetchMyPosts();
+        fetchCategories();
+    }, []);
+
     const fetchMyPosts = async () => {
         const token = localStorage.getItem('access_token');
         try {
@@ -20,20 +26,38 @@ const MyPosts = () => {
         }
     };
 
-    useEffect(() => { fetchMyPosts(); }, []);
+    const fetchCategories = async () => {
+        try {
+            // No auth needed for categories usually, but sending token doesn't hurt
+            const response = await axios.get(`${API_BASE_URL}/api/categories/`);
+            setCategories(response.data);
+        } catch (error) {
+            console.error("Failed to fetch categories", error);
+        }
+    };
 
     // --- CREATE / EDIT HANDLERS ---
     const handleCreateClick = () => {
-        setCurrentPost({ title: '', content: '', image: '', is_show: true });
+        setCurrentPost({ 
+            title: '', 
+            content: '', 
+            image: '', 
+            category: '', // Initialize empty for requirement check
+            is_show: true 
+        });
     };
 
     const handleEditClick = (post) => {
-        setCurrentPost(post);
+        // Ensure we pass the category ID. If it's null, default to empty string
+        setCurrentPost({
+            ...post,
+            category: post.category || '' 
+        });
     };
 
     // --- DELETE HANDLERS ---
     const handleDeleteClick = (post) => {
-        setPostToDelete(post); // Opens the confirmation modal
+        setPostToDelete(post);
     };
 
     const confirmDelete = async () => {
@@ -44,10 +68,8 @@ const MyPosts = () => {
             await axios.delete(`${API_BASE_URL}/api/posts/delete/${postToDelete.id}/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            
-            // Cleanup UI
             setPostToDelete(null);
-            fetchMyPosts(); // Refresh list
+            fetchMyPosts();
         } catch (error) {
             console.error("Delete failed", error);
             alert("Failed to delete post.");
@@ -67,7 +89,7 @@ const MyPosts = () => {
                 await axios.post(`${API_BASE_URL}/api/posts/create/`, currentPost, { headers });
             }
             setCurrentPost(null);
-            fetchMyPosts();
+            fetchMyPosts(); // Refresh list to show updates
         } catch (error) {
             console.error("Operation failed", error);
             alert("Failed to save post. Please check your data.");
@@ -117,6 +139,14 @@ const MyPosts = () => {
                             {/* Info */}
                             <div className="min-w-0 w-full text-center md:text-left flex flex-col">
                                 <h3 className="font-bold text-xl text-gray-800 mb-2 truncate-lines-2">{post.title}</h3>
+                                
+                                {/* Category Badge */}
+                                {post.category_name && (
+                                    <span className="mb-2 inline-block bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded w-fit mx-auto md:mx-0">
+                                        {post.category_name}
+                                    </span>
+                                )}
+
                                 <p className="text-gray-500 text-sm mb-3 line-clamp-2 md:line-clamp-1">{post.content}</p>
                                 <div className="flex flex-wrap gap-2 justify-center md:justify-start">
                                     <span className={`px-3 py-1 rounded-full text-xs font-medium ${post.is_show ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
@@ -161,14 +191,36 @@ const MyPosts = () => {
                         </div>
                         <div className="p-8 overflow-y-auto custom-scrollbar">
                             <form onSubmit={handleSubmit} className="space-y-6">
+                                
+                                {/* Title */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Title</label>
                                     <input type="text" value={currentPost.title} onChange={(e) => setCurrentPost({...currentPost, title: e.target.value})} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition text-lg font-medium" placeholder="Enter an engaging title..." required />
                                 </div>
+
+                                {/* Category Dropdown (NEW) */}
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Category <span className="text-red-500">*</span></label>
+                                    <select 
+                                        value={currentPost.category} 
+                                        onChange={(e) => setCurrentPost({...currentPost, category: e.target.value})}
+                                        className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none bg-white"
+                                        required
+                                    >
+                                        <option value="">Select a Category</option>
+                                        {categories.map(cat => (
+                                            <option key={cat.id} value={cat.id}>{cat.name}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* Content */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Content</label>
                                     <textarea value={currentPost.content} onChange={(e) => setCurrentPost({...currentPost, content: e.target.value})} className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition h-64 resize-y text-gray-700 leading-relaxed" placeholder="Write your story here..." required />
                                 </div>
+
+                                {/* Image */}
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Cover Image</label>
                                     <div className="flex items-center gap-6 p-4 border border-dashed border-gray-300 rounded-lg bg-gray-50">
@@ -176,10 +228,14 @@ const MyPosts = () => {
                                         <input type="file" accept="image/*" onChange={handleImageChange} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:bg-blue-100 file:text-blue-700 hover:file:bg-blue-200 cursor-pointer" />
                                     </div>
                                 </div>
+
+                                {/* Toggle */}
                                 <div className="flex items-center p-4 bg-gray-50 rounded-lg border border-gray-100">
                                     <input type="checkbox" id="isShow" checked={currentPost.is_show} onChange={(e) => setCurrentPost({...currentPost, is_show: e.target.checked})} className="w-5 h-5 text-blue-600 rounded focus:ring-blue-500 cursor-pointer" />
                                     <label htmlFor="isShow" className="ml-3 text-sm font-medium text-gray-700 cursor-pointer select-none">Make this post visible to the public immediately</label>
                                 </div>
+
+                                {/* Footer */}
                                 <div className="flex gap-3 justify-end pt-6 border-t border-gray-100">
                                     <button type="button" onClick={() => setCurrentPost(null)} className="px-6 py-2.5 rounded-lg text-gray-700 font-medium hover:bg-gray-100 transition">Cancel</button>
                                     <button type="submit" className="px-8 py-2.5 rounded-lg bg-blue-600 text-white font-bold hover:bg-blue-700 shadow-lg hover:shadow-xl transition transform active:scale-95">{currentPost.id ? 'Save Changes' : 'Publish Post'}</button>

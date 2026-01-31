@@ -1,6 +1,6 @@
 import React from 'react';
 
-const ProfileModal = ({ user, onClose, onViewProfile }) => {
+const ProfileModal = ({ user, onClose, onViewProfile, onLogout }) => {
     if (!user) return null;
 
     // Use image if available, else use a default gradient
@@ -56,14 +56,24 @@ const ProfileModal = ({ user, onClose, onViewProfile }) => {
                     <div className="space-y-3">
                         <button 
                             onClick={() => {
-                                onClose(); // Close modal
-                                onViewProfile(user.username); // Navigate to page
+                                onClose(); 
+                                onViewProfile(user.username); 
                             }}
                             className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 rounded-lg shadow-md transition"
                         >
                             View Full Profile
                         </button>
                         
+                        <button 
+                            onClick={() => {
+                                onClose();
+                                onLogout();
+                            }}
+                            className="w-full bg-red-100 hover:bg-red-200 text-red-600 font-bold py-2 rounded-lg transition"
+                        >
+                            Logout
+                        </button>
+
                         <div className="text-xs text-gray-400 pt-2 border-t">
                             {user.email}
                         </div>

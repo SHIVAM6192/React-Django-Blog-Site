@@ -8,7 +8,7 @@ import Register from './components/Register';
 import MyPosts from './components/MyPosts';
 import ProfileModal from './components/ProfileModal';
 import ProfilePage from './components/ProfilePage';
-import BlogDetail from './components/BlogDetail'; // Imported BlogDetail
+import BlogDetail from './components/BlogDetail';
 import { API_BASE_URL } from './config';
 
 function App() {
@@ -20,9 +20,8 @@ function App() {
   const [authMode, setAuthMode] = useState('login');
   const [dashboardKey, setDashboardKey] = useState(0);
   
-  // Navigation State
   const [viewProfileUser, setViewProfileUser] = useState(null);
-  const [selectedPost, setSelectedPost] = useState(null); // Tracks the clicked post
+  const [selectedPost, setSelectedPost] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -73,22 +72,18 @@ function App() {
     setDashboardKey(prev => prev + 1); 
   };
 
-  // Handler to open any public profile
   const handleOpenProfile = (username) => {
       setViewProfileUser(username);
       setView('profile');
   };
 
-  // Handler to open a post (Used by ProfilePage)
   const handlePostClick = (post) => {
       setSelectedPost(post);
       setView('post_detail');
   };
 
-  // Handler to go back from Post Detail
   const handleBackFromPost = () => {
       setSelectedPost(null);
-      // If we were viewing a profile, go back to it, otherwise dashboard
       if (viewProfileUser && view === 'post_detail') {
           setView('profile');
       } else {
@@ -109,26 +104,23 @@ function App() {
         onProfileClick={() => setShowProfileModal(true)}
       />
 
-      {/* CONTENT SWITCHER */}
       {token ? (
         view === 'myposts' ? (
           <MyPosts />
         ) : view === 'profile' ? (
-          // 1. Profile Page View
           <ProfilePage 
             username={viewProfileUser} 
             currentUser={user?.username} 
-            onPostClick={handlePostClick} // Passes handler to open post
+            onPostClick={handlePostClick}
+            onLogout={handleLogout} // <--- Added here
           />
         ) : view === 'post_detail' && selectedPost ? (
-          // 2. Post Detail View
           <BlogDetail 
             post={selectedPost} 
             onBack={handleBackFromPost} 
             onAuthorClick={handleOpenProfile} 
           />
         ) : (
-          // 3. Dashboard View
           <Dashboard 
             key={dashboardKey} 
             onAuthorClick={handleOpenProfile} 
@@ -138,11 +130,11 @@ function App() {
         <LandingPage onLoginClick={() => { setAuthMode('login'); setShowLoginModal(true); }} />
       )}
 
-      {/* PROFILE MODAL (Small Popup for self) */}
       {showProfileModal && user && (
         <ProfileModal 
             user={user} 
             onClose={() => setShowProfileModal(false)}
+            onLogout={handleLogout} // <--- Added here
             onViewProfile={(username) => {
                 setViewProfileUser(username);
                 setView('profile');
@@ -151,7 +143,6 @@ function App() {
         />
       )}
 
-      {/* AUTH MODAL */}
       {showLoginModal && !token && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-[60] flex items-center justify-center p-4">
           <div className="bg-white rounded-xl shadow-2xl w-full max-w-md relative overflow-hidden">
