@@ -205,7 +205,7 @@ If you have any questions, feel free to reach out to the author:
 **Shivam Sagar**
 - Email: shivamsagar6192@gmail.com
 - Profile on this platform: `@Shivam@123`
-- GitHub: `[your_github_username]`
-- LinkedIn: `[your_linkedin_url]`
+- GitHub: `[https://github.com/SHIVAM6192]`
+- LinkedIn: `[https://www.linkedin.com/in/shivam-sagar-002263209/]`
 
 ---
