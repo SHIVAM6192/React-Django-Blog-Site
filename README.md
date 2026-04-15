@@ -76,19 +76,19 @@ Here is a walkthrough of the platform using project screenshots, illustrating th
 
 The main dashboard provides an curated feed of "Latest Articles," organized by category (e.g., Django, Software Development) and featuring dates and author information. A clean, modern hero section sets the tone.
 
-![Home Page of Shivam's Tech Blog](image_dee7c6.jpg)
+![Home Page of Shivam's Tech Blog](screenshots/image_dee7c6.jpg)
 
 ### **2. Blog Creation - The Writing Suite**
 
 The platform offers a detailed blog drafting interface where users can input titles, select categories, and write content. Critically, it allows for image uploads for blog covers and includes a powerful privacy toggle: "Make this post visible to public?".
 
-![Writing a new story on the blog platform](image_dee83b.png)
+![Writing a new story on the blog platform](screenshots/image_dee83b.png)
 
 ### **3. My Posts Manager - Dashboard**
 
 A dedicated manager provides users with an overview of their created content, showing status labels ("Visible", "Approved") and allowing for edit/delete actions. Note the "Approved" label, which is part of the planned admin workflow.
 
-![User dashboard showing drafted and published blogs](image_deebc4.png)
+![User dashboard showing drafted and published blogs](screenshots/image_deebc4.png)
 
 ### **4. Community Profiles & Engagement**
 
@@ -98,19 +98,19 @@ Users can easily view and edit their profile details via a modal, and a clean lo
 
 The profile highlights social engagement with real-time counters. Below, the full profile details for owner Shivam Sagar:
 
-![Profile modal on Shivam's Tech Blog](image_deec1e.png)
+![Profile modal on Shivam's Tech Blog](screenshots/image_deec1e.png)
 
-![User Profile Page showing followers and following counters](image_deec5c.jpg)
+![User Profile Page showing followers and following counters](screenshots/image_deec5c.jpg)
 
 ### **5. Article View & Social Interaction**
 
 Detailed article view provides author details, post metadata (e.g., author `@Vivek@123`, date 1/17/2026), and clear social interaction buttons.
 
-![Article details for 'Spring Boot' by Vivek@123](image_deeb43.png)
+![Article details for 'Spring Boot' by Vivek@123](screenshots/image_deeb43.png)
 
 The full discussion is shown below, with comments from `@Vivek@123` and `@shivam` and a dynamic text-area for new responses.
 
-![Comment section on article page showing interaction](image_deeb81.png)
+![Comment section on article page showing interaction](screenshots/image_deeb81.png)
 
 ---
 
