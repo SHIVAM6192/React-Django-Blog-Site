@@ -66,7 +66,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             # FIX: Check if current user has profile first
             if hasattr(request.user, 'profile'):
-                return request.user.profile.following.filter(id=obj.id).exists()
+                return request.user.profile.following.filter(id=obj.user.id).exists()
         return False
     
 class PostSerializer(serializers.ModelSerializer):
@@ -77,10 +77,12 @@ class PostSerializer(serializers.ModelSerializer):
     likes_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()
     comments = CommentSerializer(many=True, read_only=True)
+    is_following_author = serializers.SerializerMethodField()
+    is_author = serializers.SerializerMethodField()
 
     class Meta:
         model = Post
-        fields = ['id', 'title', 'content', 'author', 'author_id', 'author_image', 'category', 'category_name', 'created_at', 'is_show', 'is_active', 'image', 'likes_count', 'is_liked', 'comments']
+        fields = ['id', 'title', 'content', 'author', 'author_id', 'author_image', 'category', 'category_name', 'created_at', 'is_show', 'is_active', 'image', 'likes_count', 'is_liked', 'comments', 'is_following_author', 'is_author']
         read_only_fields = ['author', 'created_at', 'is_active']
 
     def get_likes_count(self, obj):
@@ -98,3 +100,16 @@ class PostSerializer(serializers.ModelSerializer):
         if hasattr(obj.author, 'profile'):
             return obj.author.profile.profile_image
         return None
+
+    def get_is_following_author(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            if hasattr(request.user, 'profile'):
+                return request.user.profile.following.filter(id=obj.author.id).exists()
+        return False
+
+    def get_is_author(self, obj):
+        request = self.context.get('request')
+        if request and request.user.is_authenticated:
+            return request.user == obj.author
+        return False

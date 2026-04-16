@@ -42,6 +42,26 @@ const BlogDetail = ({ post, onBack, refreshPost }) => { // refreshPost is a call
         }
     };
 
+    const handleFollow = async () => {
+        const token = localStorage.getItem('access_token');
+        if (!token) return;
+        try {
+            if (localPost.is_following_author) {
+                await axios.post(`${API_BASE_URL}/api/profile/unfollow/`, { user_id: localPost.author_id }, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                setLocalPost(prev => ({ ...prev, is_following_author: false }));
+            } else {
+                await axios.post(`${API_BASE_URL}/api/profile/follow/`, { user_id: localPost.author_id }, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                setLocalPost(prev => ({ ...prev, is_following_author: true }));
+            }
+        } catch (error) {
+            console.error(error);
+        }
+    };
+
     return (
         <div className="max-w-4xl mx-auto pt-24 px-4 pb-12">
             <button onClick={onBack} className="mb-6 text-gray-600 hover:text-blue-600">← Back</button>
@@ -59,10 +79,10 @@ const BlogDetail = ({ post, onBack, refreshPost }) => { // refreshPost is a call
                         </span>
                     )}
                     <h1 className="text-4xl font-bold mb-4">{localPost.title}</h1>
-                    <div className="flex items-center gap-4 mb-8 border-b pb-6">
+                    <div className="flex items-center justify-between gap-4 mb-8 border-b pb-6">
                         <div className="flex items-center gap-2">
                              {/* Avatar */}
-                             <div className="w-10 h-10 rounded-full bg-gray-200 overflow-hidden">
+                             <div className="w-10 h-10 rounded-full bg-gray-200 flex-shrink-0 overflow-hidden">
                                 {localPost.author_image ? <img src={localPost.author_image} className="w-full h-full object-cover" /> : null}
                              </div>
                              <div>
@@ -70,6 +90,20 @@ const BlogDetail = ({ post, onBack, refreshPost }) => { // refreshPost is a call
                                 <span className="block text-xs text-gray-500">{new Date(localPost.created_at).toLocaleDateString()}</span>
                              </div>
                         </div>
+
+                        {/* Follow Button */}
+                        {!localPost.is_author && (
+                            <button
+                                onClick={handleFollow}
+                                className={`px-4 py-1.5 rounded-full text-sm font-bold transition-colors ${
+                                    localPost.is_following_author 
+                                        ? 'bg-gray-100 text-gray-800 hover:bg-gray-200 border border-gray-300' 
+                                        : 'bg-blue-600 text-white hover:bg-blue-700'
+                                }`}
+                            >
+                                {localPost.is_following_author ? 'Following' : 'Follow'}
+                            </button>
+                        )}
                     </div>
                     <div className="prose max-w-none text-gray-700 leading-relaxed text-lg whitespace-pre-line mb-8">
                         {localPost.content}

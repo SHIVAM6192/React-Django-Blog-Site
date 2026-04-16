@@ -182,17 +182,31 @@ def update_profile(request):
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
-def toggle_follow(request, username):
-    target_user = get_object_or_404(User, username=username)
-    target_profile = target_user.profile
+def follow_user(request):
+    target_user_id = request.data.get('user_id')
+    if not target_user_id:
+        return Response({'error': 'user_id is required in request body'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    target_user = get_object_or_404(User, id=target_user_id)
     current_profile = request.user.profile
-
-    if current_profile == target_profile:
+    
+    if request.user == target_user:
         return Response({'error': 'You cannot follow yourself'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    current_profile.following.add(target_user)
+    target_user.profile.followers.add(request.user)
+    return Response({'status': 'followed'})
 
-    if current_profile.following.filter(id=target_profile.id).exists():
-        current_profile.following.remove(target_profile)
-        return Response({'status': 'unfollowed'})
-    else:
-        current_profile.following.add(target_profile)
-        return Response({'status': 'followed'})
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def unfollow_user(request):
+    target_user_id = request.data.get('user_id')
+    if not target_user_id:
+        return Response({'error': 'user_id is required in request body'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    target_user = get_object_or_404(User, id=target_user_id)
+    current_profile = request.user.profile
+    
+    current_profile.following.remove(target_user)
+    target_user.profile.followers.remove(request.user)
+    return Response({'status': 'unfollowed'})

@@ -32,7 +32,8 @@ class Profile(models.Model):
     bio = models.TextField(blank=True, null=True)
     profile_image = models.TextField(blank=True, null=True) # Base64
     background_image = models.TextField(blank=True, null=True) # Base64
-    followers = models.ManyToManyField('self', symmetrical=False, related_name='following', blank=True)
+    followers = models.ManyToManyField(User, related_name='user_followers', blank=True)
+    following = models.ManyToManyField(User, related_name='user_following', blank=True)
 
     def __str__(self):
         return self.user.username
