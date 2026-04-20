@@ -46,6 +46,10 @@ Shivam's Tech Blog is a platform for the tech community, built on clean architec
 - Showcase a personalized **"About"** description.
 - Track influence with implemented **Followers** and **Following** count metrics.
 
+### **Advanced Search & Pagination**
+- Fast-loading feeds via DRF-powered **Native Pagination** across the Dashboard, Profiles, and My Posts pages.
+- Real-time **Search Filtering** on the Dashboard for locating specific articles by keyword (titles/authors) or specific publication dates.
+
 ### **Streamlined Admin Workflow**
 - Dedicated "My Posts" management dashboard.
 - Admin review process for blog approval to maintain content quality.
@@ -122,7 +126,7 @@ The backend exposes a clear and restful API. Here are some key endpoints:
 | :--- | :--- | :--- | :--- |
 | `/api/auth/token/` | `POST` | Get JWT access and refresh tokens | No |
 | `/api/auth/register/` | `POST` | Register a new user | No |
-| `/api/posts/` | `GET` | Get all public posts | No |
+| `/api/posts/` | `GET` | Get all public posts (Paginated 6/Page with text/date Search) | No |
 | `/api/posts/create/` | `POST` | Create a new blog post | Yes |
 | `/api/posts/{id}/update/` | `PATCH` | Edit a blog post | Yes (Owner) |
 | `/api/posts/{id}/like/` | `POST` | Like a blog post | Yes |
