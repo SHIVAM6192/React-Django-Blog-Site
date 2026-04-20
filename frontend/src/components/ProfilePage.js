@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import Loader from './Loader';
 
 const ProfilePage = ({ username, currentUser, onPostClick, onLogout }) => {
     const [profile, setProfile] = useState(null);
     const [posts, setPosts] = useState([]);
     const [isEditing, setIsEditing] = useState(false);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     
     // Edit Form State
     const [editData, setEditData] = useState({
@@ -19,16 +22,25 @@ const ProfilePage = ({ username, currentUser, onPostClick, onLogout }) => {
 
     useEffect(() => {
         if(username) fetchProfile();
-    }, [username]);
+    }, [username, currentPage]);
 
     const fetchProfile = async () => {
         const token = localStorage.getItem('access_token');
         try {
             const res = await axios.get(`${API_BASE_URL}/api/profile/${username}/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` },
+                params: { page: currentPage }
             });
             setProfile(res.data.profile);
-            setPosts(res.data.posts);
+            
+            if (res.data.posts && res.data.posts.results !== undefined) {
+                setPosts(res.data.posts.results);
+                setTotalPages(Math.ceil(res.data.posts.count / 6));
+            } else {
+                setPosts(res.data.posts || []);
+                setTotalPages(1);
+            }
+            
             setEditData(res.data.profile);
         } catch (error) {
             console.error("Error fetching profile", error);
@@ -73,7 +85,7 @@ const ProfilePage = ({ username, currentUser, onPostClick, onLogout }) => {
         }
     };
 
-    if (!profile) return <div className="pt-24 text-center font-medium text-gray-500">Loading Profile...</div>;
+    if (!profile) return <Loader fullScreen={true} />;
 
     const isOwnProfile = currentUser === profile.username;
 
@@ -191,18 +203,58 @@ const ProfilePage = ({ username, currentUser, onPostClick, onLogout }) => {
                     {posts.length === 0 ? (
                         <div className="text-center py-12 bg-white rounded-xl border border-dashed text-gray-500">No posts shared yet.</div>
                     ) : (
-                        posts.map(post => (
-                            <div key={post.id} onClick={() => onPostClick(post)} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition">
-                                {post.image && <div className="h-64 w-full bg-gray-100"><img src={post.image} alt="Post" className="w-full h-full object-cover" /></div>}
-                                <div className="p-6">
-                                    <h3 className="font-bold text-xl text-gray-900 mb-2">{post.title}</h3>
-                                    <p className="text-gray-600 text-sm line-clamp-2 mb-4">{post.content}</p>
-                                    <div className="flex gap-6 text-gray-500 text-sm pt-4 border-t">
-                                        <span>❤️ {post.likes_count}</span><span>💬 {post.comments.length}</span>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            {posts.map(post => (
+                                <div key={post.id} onClick={() => onPostClick(post)} className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden cursor-pointer hover:shadow-md transition flex flex-col h-full">
+                                    {post.image ? (
+                                        <div className="h-40 w-full bg-gray-100 flex-shrink-0 relative">
+                                            <img src={post.image} alt="Post" className="w-full h-full object-cover" />
+                                            <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded text-xs font-bold text-gray-600 shadow-sm">
+                                                {new Date(post.created_at).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="h-40 w-full bg-gray-100 flex items-center justify-center text-gray-400 text-2xl flex-shrink-0 relative">
+                                            📝
+                                            <div className="absolute top-2 right-2 bg-white/90 px-2 py-1 rounded text-xs font-bold text-gray-600 shadow-sm">
+                                                {new Date(post.created_at).toLocaleDateString()}
+                                            </div>
+                                        </div>
+                                    )}
+                                    <div className="p-5 flex-1 flex flex-col">
+                                        <h3 className="font-bold text-lg text-gray-900 mb-2 line-clamp-2">{post.title}</h3>
+                                        <p className="text-gray-600 text-sm line-clamp-3 mb-4 flex-1">{post.content}</p>
+                                        <div className="flex gap-4 text-gray-500 text-sm pt-4 border-t mt-auto">
+                                            <span className="flex items-center gap-1"><span className={post.is_liked ? "text-red-500" : ""}>❤️</span> {post.likes_count}</span>
+                                            <span className="flex items-center gap-1">💬 {post.comments ? post.comments.length : 0}</span>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        ))
+                            ))}
+                        </div>
+                    )}
+
+                    {/* --- PAGINATION CONTROLS --- */}
+                    {totalPages > 1 && (
+                        <div className="flex justify-between sm:justify-center items-center gap-2 sm:gap-6 p-4 sm:p-6 mt-4 border-t border-gray-100 bg-gray-50/50 rounded-xl w-full">
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                disabled={currentPage === 1}
+                                className={`px-3 sm:px-5 py-2 text-sm sm:text-base font-bold rounded-lg transition flex items-center ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                            >
+                                &larr; <span className="hidden md:inline ml-1">Prev</span>
+                            </button>
+                            <span className="text-gray-700 font-semibold bg-white px-3 sm:px-4 py-1 sm:py-1.5 rounded-md shadow-sm border border-gray-200 text-sm sm:text-base whitespace-nowrap">
+                                Page {currentPage} of {totalPages}
+                            </span>
+                            <button 
+                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                disabled={currentPage === totalPages}
+                                className={`px-3 sm:px-5 py-2 text-sm sm:text-base font-bold rounded-lg transition flex items-center ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                            >
+                                <span className="hidden md:inline mr-1">Next</span> &rarr;
+                            </button>
+                        </div>
                     )}
                 </div>
             </div>

@@ -9,6 +9,7 @@ import MyPosts from './components/MyPosts';
 import ProfileModal from './components/ProfileModal';
 import ProfilePage from './components/ProfilePage';
 import BlogDetail from './components/BlogDetail';
+import Footer from './components/Footer';
 import { API_BASE_URL } from './config';
 
 function App() {
@@ -92,7 +93,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen flex flex-col bg-gray-50 font-sans">
       <Navbar 
         isLoggedIn={!!token} 
         user={user}
@@ -104,7 +105,8 @@ function App() {
         onProfileClick={() => setShowProfileModal(true)}
       />
 
-      {token ? (
+      <main className="flex-grow">
+        {token ? (
         view === 'myposts' ? (
           <MyPosts />
         ) : view === 'profile' ? (
@@ -129,6 +131,9 @@ function App() {
       ) : (
         <LandingPage onLoginClick={() => { setAuthMode('login'); setShowLoginModal(true); }} />
       )}
+      </main>
+
+      <Footer />
 
       {showProfileModal && user && (
         <ProfileModal 

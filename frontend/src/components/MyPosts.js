@@ -1,26 +1,42 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import Loader from './Loader';
 
 const MyPosts = () => {
     const [posts, setPosts] = useState([]);
     const [categories, setCategories] = useState([]); // Store categories
     const [currentPost, setCurrentPost] = useState(null); // For Edit/Create Modal
     const [postToDelete, setPostToDelete] = useState(null); // For Delete Confirmation Modal
+    const [isLoading, setIsLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
 
     // Initial Fetch (Posts & Categories)
     useEffect(() => {
-        fetchMyPosts();
-        fetchCategories();
-    }, []);
+        const loadInitialData = async () => {
+            setIsLoading(true);
+            await fetchMyPosts();
+            await fetchCategories();
+            setIsLoading(false);
+        };
+        loadInitialData();
+    }, [currentPage]);
 
     const fetchMyPosts = async () => {
         const token = localStorage.getItem('access_token');
         try {
             const response = await axios.get(`${API_BASE_URL}/api/my-posts/`, {
-                headers: { 'Authorization': `Bearer ${token}` }
+                headers: { 'Authorization': `Bearer ${token}` },
+                params: { page: currentPage }
             });
-            setPosts(response.data);
+            if (response.data && response.data.results !== undefined) {
+                setPosts(response.data.results);
+                setTotalPages(Math.ceil(response.data.count / 6));
+            } else {
+                setPosts(response.data);
+                setTotalPages(1);
+            }
         } catch (error) {
             console.error("Failed to fetch posts", error);
         }
@@ -122,62 +138,89 @@ const MyPosts = () => {
             </div>
             
             {/* --- POST LIST --- */}
-            <div className="grid gap-6">
-                {posts.map(post => (
-                    <div key={post.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition gap-5">
-                        
-                        <div className="flex flex-col md:flex-row gap-5 items-center w-full overflow-hidden">
-                            {/* Image */}
-                            <div className="w-full h-48 md:w-32 md:h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 relative group">
-                                {post.image ? (
-                                    <img src={post.image} alt="Cover" className="w-full h-full object-cover" />
-                                ) : (
-                                    <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl">📝</div>
-                                )}
-                            </div>
+            {isLoading ? (
+                <Loader />
+            ) : (
+                <div className="grid gap-6">
+                    {posts.map(post => (
+                        <div key={post.id} className="bg-white p-5 rounded-xl shadow-sm border border-gray-100 flex flex-col md:flex-row justify-between items-center hover:shadow-md transition gap-5">
+                            
+                            <div className="flex flex-col md:flex-row gap-5 items-center w-full overflow-hidden">
+                                {/* Image */}
+                                <div className="w-full h-48 md:w-32 md:h-24 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 relative group">
+                                    {post.image ? (
+                                        <img src={post.image} alt="Cover" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <div className="w-full h-full flex items-center justify-center text-gray-400 text-3xl">📝</div>
+                                    )}
+                                </div>
 
-                            {/* Info */}
-                            <div className="min-w-0 w-full text-center md:text-left flex flex-col">
-                                <h3 className="font-bold text-xl text-gray-800 mb-2 truncate-lines-2">{post.title}</h3>
-                                
-                                {/* Category Badge */}
-                                {post.category_name && (
-                                    <span className="mb-2 inline-block bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded w-fit mx-auto md:mx-0">
-                                        {post.category_name}
-                                    </span>
-                                )}
+                                {/* Info */}
+                                <div className="min-w-0 w-full text-center md:text-left flex flex-col">
+                                    <h3 className="font-bold text-xl text-gray-800 mb-2 truncate-lines-2">{post.title}</h3>
+                                    
+                                    {/* Category Badge */}
+                                    {post.category_name && (
+                                        <span className="mb-2 inline-block bg-blue-50 text-blue-600 text-xs font-bold px-2 py-1 rounded w-fit mx-auto md:mx-0">
+                                            {post.category_name}
+                                        </span>
+                                    )}
 
-                                <p className="text-gray-500 text-sm mb-3 line-clamp-2 md:line-clamp-1">{post.content}</p>
-                                <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${post.is_show ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
-                                        {post.is_show ? 'Visible' : 'Hidden'}
-                                    </span>
-                                    <span className={`px-3 py-1 rounded-full text-xs font-medium ${post.is_active ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
-                                        {post.is_active ? 'Approved' : 'Pending'}
-                                    </span>
+                                    <p className="text-gray-500 text-sm mb-3 line-clamp-2 md:line-clamp-1">{post.content}</p>
+                                    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${post.is_show ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-600'}`}>
+                                            {post.is_show ? 'Visible' : 'Hidden'}
+                                        </span>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-medium ${post.is_active ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-700'}`}>
+                                            {post.is_active ? 'Approved' : 'Pending'}
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        {/* BUTTON GROUP (Edit & Delete) */}
-                        <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto flex-shrink-0">
-                            <button 
-                                onClick={() => handleEditClick(post)}
-                                className="w-full md:w-auto bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-bold transition whitespace-nowrap"
-                            >
-                                Edit
-                            </button>
-                            <button 
-                                onClick={() => handleDeleteClick(post)}
-                                className="w-full md:w-auto bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition whitespace-nowrap"
-                            >
-                                Delete
-                            </button>
-                        </div>
+                            {/* BUTTON GROUP (Edit & Delete) */}
+                            <div className="flex flex-col md:flex-row gap-2 w-full md:w-auto flex-shrink-0">
+                                <button 
+                                    onClick={() => handleEditClick(post)}
+                                    className="w-full md:w-auto bg-indigo-50 text-indigo-600 hover:bg-indigo-100 px-4 py-2 rounded-lg text-sm font-bold transition whitespace-nowrap"
+                                >
+                                    Edit
+                                </button>
+                                <button 
+                                    onClick={() => handleDeleteClick(post)}
+                                    className="w-full md:w-auto bg-red-50 text-red-600 hover:bg-red-100 px-4 py-2 rounded-lg text-sm font-bold transition whitespace-nowrap"
+                                >
+                                    Delete
+                                </button>
+                            </div>
 
-                    </div>
-                ))}
-            </div>
+                        </div>
+                    ))}
+                </div>
+            )}
+
+            {/* --- PAGINATION CONTROLS --- */}
+            {totalPages > 1 && !isLoading && (
+                <div className="flex justify-between sm:justify-center items-center gap-2 sm:gap-6 p-4 sm:p-6 mt-4 border-t border-gray-100 bg-gray-50/50 rounded-xl w-full">
+                    <button 
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className={`px-3 sm:px-5 py-2 text-sm sm:text-base font-bold rounded-lg transition flex items-center ${currentPage === 1 ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                    >
+                        &larr; <span className="hidden md:inline ml-1">Previous</span>
+                    </button>
+                    <span className="text-gray-700 font-semibold bg-white px-3 sm:px-4 py-1 sm:py-1.5 rounded-md shadow-sm border border-gray-200 text-sm sm:text-base whitespace-nowrap">
+                        Page {currentPage} of {totalPages}
+                    </span>
+                    <button 
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className={`px-3 sm:px-5 py-2 text-sm sm:text-base font-bold rounded-lg transition flex items-center ${currentPage === totalPages ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-blue-50 text-blue-600 hover:bg-blue-100'}`}
+                    >
+                        <span className="hidden md:inline mr-1">Next</span> &rarr;
+                    </button>
+                </div>
+            )}
 
             {/* --- CREATE / EDIT MODAL --- */}
             {currentPost && (

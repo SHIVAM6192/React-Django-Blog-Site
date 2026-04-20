@@ -127,16 +127,25 @@ const BlogDetail = ({ post, onBack, refreshPost }) => { // refreshPost is a call
                 <h3 className="text-2xl font-bold mb-6">Comments ({localPost.comments.length})</h3>
                 
                 {/* Add Comment */}
-                <form onSubmit={handleComment} className="mb-8 flex gap-4">
+                <form onSubmit={handleComment} className="mb-8 flex items-center gap-2 bg-gray-50 md:bg-white p-2 md:p-3 rounded-full shadow-inner md:shadow-sm border border-gray-200 transition-all focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
                     <input 
                         type="text" 
                         value={comment}
                         onChange={(e) => setComment(e.target.value)}
                         placeholder="Write a thoughtful comment..."
-                        className="flex-1 border p-3 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        className="flex-1 bg-transparent px-3 md:px-4 py-1 md:py-2 outline-none text-gray-700 text-sm md:text-base w-full"
                         required
                     />
-                    <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold">Post</button>
+                    <button 
+                        type="submit" 
+                        disabled={!comment.trim()}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed text-white p-2.5 md:p-3 rounded-full flex-shrink-0 shadow-md transition transform"
+                        title="Send Comment"
+                    >
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5 ml-1">
+                            <path d="M3.478 2.404a.75.75 0 0 0-.926.941l2.432 7.905H13.5a.75.75 0 0 1 0 1.5H4.984l-2.432 7.905a.75.75 0 0 0 .926.94 60.519 60.519 0 0 0 18.445-8.986.75.75 0 0 0 0-1.218A60.517 60.517 0 0 0 3.478 2.404Z" />
+                        </svg>
+                    </button>
                 </form>
 
                 {/* List Comments */}

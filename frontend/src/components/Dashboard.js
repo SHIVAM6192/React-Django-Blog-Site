@@ -7,6 +7,8 @@ const Dashboard = ({ onAuthorClick }) => { // 1. Accept the prop
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedPost, setSelectedPost] = useState(null);
   const [isCreating, setIsCreating] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [dateQuery, setDateQuery] = useState('');
 
   // VIEW 1: READ POST (Detail View)
   if (selectedPost) {
@@ -70,13 +72,37 @@ const Dashboard = ({ onAuthorClick }) => { // 1. Accept the prop
       <div className="max-w-7xl mx-auto px-4 -mt-16 relative z-30">
         
         {/* Controls Bar */}
-        <div className="bg-white rounded-xl shadow-lg p-4 mb-8 flex flex-col md:flex-row justify-between items-center border border-gray-100">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
-                Latest Articles
-            </h2>
+        <div className="bg-white rounded-xl shadow-lg p-4 mb-8 flex flex-col lg:flex-row justify-between items-center border border-gray-100 gap-4">
+            
+            {/* Search Controls */}
+            <div className="flex flex-col sm:flex-row gap-3 w-full lg:flex-1">
+                <input 
+                    type="text" 
+                    placeholder="Search by title or author..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                />
+                <input 
+                    type="date" 
+                    value={dateQuery}
+                    onChange={(e) => setDateQuery(e.target.value)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none transition"
+                />
+                {(searchQuery || dateQuery) && (
+                    <button 
+                        onClick={() => { setSearchQuery(''); setDateQuery(''); }}
+                        className="px-4 py-2 bg-gray-100 hover:bg-gray-200 border border-gray-300 rounded-lg text-gray-700 font-medium transition"
+                        title="Clear Search"
+                    >
+                        Clear
+                    </button>
+                )}
+            </div>
+
             <button 
                 onClick={() => setIsCreating(true)} // Switches to Create View
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-full font-bold shadow-md transition transform hover:scale-105"
+                className="w-full lg:w-auto bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-full font-bold shadow-md transition transform hover:scale-105 whitespace-nowrap"
             >
                 Write a Story ✍️
             </button>
@@ -88,6 +114,8 @@ const Dashboard = ({ onAuthorClick }) => { // 1. Accept the prop
                 refreshTrigger={refreshTrigger} 
                 onPostClick={(post) => setSelectedPost(post)} 
                 onAuthorClick={onAuthorClick} // 3. Pass it to Post List
+                searchQuery={searchQuery}
+                dateQuery={dateQuery}
              />
         </div>
 
